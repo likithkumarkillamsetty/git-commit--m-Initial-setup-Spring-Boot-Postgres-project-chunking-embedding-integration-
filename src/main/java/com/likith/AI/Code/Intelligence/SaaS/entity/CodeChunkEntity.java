@@ -21,7 +21,4 @@ public class CodeChunkEntity {
 
     @Column(columnDefinition = "TEXT")
     private String content;
-
-    @Column(columnDefinition = "vector(1536)")
-    private float[] embedding;
 }

@@ -1,6 +1,7 @@
 package com.likith.AI.Code.Intelligence.SaaS.controller;
 
 import com.likith.AI.Code.Intelligence.SaaS.dto.CreateProjectRequest;
+import com.likith.AI.Code.Intelligence.SaaS.dto.SearchResult;
 import com.likith.AI.Code.Intelligence.SaaS.entity.Project;
 import com.likith.AI.Code.Intelligence.SaaS.model.CodeChunk;
 import com.likith.AI.Code.Intelligence.SaaS.model.SourceFile;
@@ -19,17 +20,20 @@ public class ProjectController {
     private final FileContentService fileContentService;
     private final CodeChunkService codeChunkService;
     private final ChunkStorageService chunkStorageService;
+    private final SearchService searchService;
 
     public ProjectController(ProjectService service,
                              FileScannerService fileScannerService,
                              FileContentService fileContentService,
                              CodeChunkService codeChunkService,
-                             ChunkStorageService chunkStorageService) {
+                             ChunkStorageService chunkStorageService,
+                             SearchService searchService) {
         this.service = service;
         this.fileScannerService = fileScannerService;
         this.fileContentService = fileContentService;
         this.codeChunkService = codeChunkService;
         this.chunkStorageService = chunkStorageService;
+        this.searchService = searchService;
     }
 
     @PostMapping
@@ -70,5 +74,21 @@ public class ProjectController {
         List<CodeChunk> chunks = codeChunkService.chunkSourceFiles(sourceFiles);
         chunkStorageService.storeChunks(id, chunks);
         return "Embedding completed";
+    }
+
+    @PostMapping("/{id}/search")
+    public List<SearchResult> search(
+            @PathVariable Long id,
+            @RequestBody String query) {
+
+        return searchService.search(id, query);
+    }
+
+    @PostMapping("/{id}/ask")
+    public String ask(
+            @PathVariable Long id,
+            @RequestBody String question) {
+
+        return searchService.askQuestion(id, question);
     }
 }
