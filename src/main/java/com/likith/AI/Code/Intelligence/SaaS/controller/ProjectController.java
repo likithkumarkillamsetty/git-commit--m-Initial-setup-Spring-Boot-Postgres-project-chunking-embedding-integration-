@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -84,11 +85,19 @@ public class ProjectController {
         return searchService.search(id, query);
     }
 
-    @PostMapping("/{id}/ask")
-    public String ask(
-            @PathVariable Long id,
-            @RequestBody String question) {
+//    @PostMapping("/{id}/ask")
+//    public String ask(
+//            @PathVariable Long id,
+//            @RequestBody String question) {
+//
+//        return searchService.askQuestion(id, question);
+//    }
 
-        return searchService.askQuestion(id, question);
+    @PostMapping("/{id}/ask")
+    public String askProject(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> body) {
+
+        return searchService.askQuestion(id, body.get("question"));
     }
 }

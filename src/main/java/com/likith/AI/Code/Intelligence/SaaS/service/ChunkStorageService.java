@@ -37,7 +37,7 @@ public class ChunkStorageService {
 
             repository.save(entity);
 
-            float[] embedding = embeddingService.generateEmbedding(chunk.getChunkContent());
+            float[] embedding = embeddingService.getEmbedding(chunk.getChunkContent());
 
             String vectorString = toPgVectorString(embedding);
 
