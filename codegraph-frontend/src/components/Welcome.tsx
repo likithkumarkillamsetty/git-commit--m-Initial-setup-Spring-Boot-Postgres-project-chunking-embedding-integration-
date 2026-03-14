@@ -22,11 +22,13 @@ export default function Welcome({ onDone }: { onDone: () => void }) {
       return projectApi.create(name, repoUrl)
     },
     onSuccess: (project) => {
+      console.log('API SUCCESS - project:', project)
       addProject(project)
       setActiveProject(project.id)
       projectReadyRef.current = true
-      // If animation already done, navigate immediately
+      console.log('animationDoneRef:', animationDoneRef.current)
       if (animationDoneRef.current) {
+        console.log('Calling onDone immediately')
         onDone()
       }
     },
@@ -94,7 +96,7 @@ export default function Welcome({ onDone }: { onDone: () => void }) {
         <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.3}}
                     className={`flex items-center gap-3 font-mono text-[10px] tracking-[.14em] uppercase mb-3 ${d?'text-[#3fb950]':'text-[#1a7f37]'}`}>
           <div className={`h-px w-8 ${d?'bg-[#3fb950]/40':'bg-[#1a7f37]/40'}`}/>
-          RAG · pgvector · Ollama
+          RAG · PGVECTOR · GROQ
           <div className={`h-px w-8 ${d?'bg-[#3fb950]/40':'bg-[#1a7f37]/40'}`}/>
         </motion.div>
 
@@ -107,7 +109,7 @@ export default function Welcome({ onDone }: { onDone: () => void }) {
 
         <motion.p initial={{opacity:0}} animate={{opacity:1}} transition={{delay:.4}}
                   className={`text-[13px] text-center max-w-md leading-relaxed mb-10 ${d?'text-[#7a8fa8]':'text-[#5a5650]'}`}>
-          Paste a GitHub URL. CodeGraph clones it, chunks every file, generates vector embeddings via Ollama, and lets you query the entire codebase in natural language.
+          Paste a GitHub URL. CodeGraph clones it, chunks every file, generates vector embeddings via HuggingFace, and lets you ask questions about the entire codebase using LLaMA 3.3 70B
         </motion.p>
 
         <motion.div initial={{opacity:0,y:10}} animate={{opacity:1,y:0}} transition={{delay:.45}}

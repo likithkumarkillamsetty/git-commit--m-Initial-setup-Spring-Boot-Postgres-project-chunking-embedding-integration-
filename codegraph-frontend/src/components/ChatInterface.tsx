@@ -260,7 +260,7 @@ export default function ChatInterface() {
           </motion.button>
         </div>
         <div className={`font-mono text-[9px] mt-1.5 px-1 ${d?'text-[#3d5068]':'text-[#9a9590]'}`}>
-          Enter to send · Shift+Enter for newline · powered by Gemma via Ollama
+          Enter to send · Shift+Enter for newline · powered by Groq LLaMA
         </div>
       </div>
     </div>

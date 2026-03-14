@@ -51,7 +51,7 @@ export default function Sidebar({ onNew }: { onNew: () => void }) {
 
       <div className={`border-t px-3 py-3 font-mono text-[9px] space-y-1 ${d?'border-[#1e2838] text-[#3d5068]':'border-[#d5d0c8] text-[#9a9590]'}`}>
         <div className="flex items-center gap-1.5"><Database size={9}/> pgvector · PostgreSQL</div>
-        <div className="flex items-center gap-1.5"><Cpu size={9}/> Ollama · Gemma · nomic-embed</div>
+        <div className="flex items-center gap-1.5"><Cpu size={9}/> HuggingFace · BAAI/bge-base</div>
         <div className="flex items-center gap-1.5"><GitBranch size={9}/> RAG Pipeline · Spring Boot</div>
       </div>
     </aside>
