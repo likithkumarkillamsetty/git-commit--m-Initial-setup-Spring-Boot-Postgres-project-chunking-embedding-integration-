@@ -439,35 +439,6 @@ CREATE INDEX ON code_chunks USING ivfflat (embedding vector_cosine_ops);
 
 ---
 
-## 🖼️ Screenshots
-
-> Add screenshots of your running application here
-
-| Clone Repository | Chat Interface | Code Snippets |
-|-----------------|----------------|---------------|
-| *(screenshot)* | *(screenshot)* | *(screenshot)* |
-
----
-
-## 🗺️ Roadmap
-
-- [x] Custom RAG pipeline in Java
-- [x] HuggingFace embeddings (BAAI/bge-base-en-v1.5)
-- [x] Groq LLaMA 3.3 70B integration
-- [x] Multi-layer intent detection
-- [x] Batch embedding
-- [x] PDF/TXT export
-- [x] Dark/Light theme
-- [ ] Delete repository button
-- [ ] Deployment on Railway + Vercel
-- [ ] User authentication (JWT)
-- [ ] Private GitHub repo support (OAuth)
-- [ ] Streaming LLM responses
-- [ ] Conversation history persistence
-- [ ] Support for Python, JavaScript, TypeScript files
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome!
@@ -486,7 +457,6 @@ Contributions are welcome!
 
 - 🎓 B.Tech CSE — ANITS Visakhapatnam (CGPA: 9.39)
 - 📧 killamsettylikithkumar@gmail.com
-- 📱 +91 7675925110
 - 💼 [LinkedIn](https://www.linkedin.com/in/likithkumarkillamsetty/)
 - 🐙 [GitHub](https://github.com/likithkumarkillamsetty)
 - 💻 [LeetCode](https://leetcode.com/u/likithkumarkillamsetty/)
