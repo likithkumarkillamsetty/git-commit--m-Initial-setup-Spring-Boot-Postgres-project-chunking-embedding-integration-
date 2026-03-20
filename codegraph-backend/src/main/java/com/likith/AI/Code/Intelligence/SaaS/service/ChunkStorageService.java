@@ -33,7 +33,7 @@ public class ChunkStorageService {
     @Transactional
     public void storeChunks(Long projectId, List<CodeChunk> chunks) {
 
-        int batchSize = 10;
+        int batchSize = 20;
 
         for (int i = 0; i < chunks.size(); i += batchSize) {
 

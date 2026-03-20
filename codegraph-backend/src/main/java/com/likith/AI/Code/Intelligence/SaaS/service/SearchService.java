@@ -34,20 +34,34 @@ public class SearchService {
 
         String prompt = """
 You are a classifier for a code intelligence assistant called CodeGraph AI.
+Users are asking questions about a specific software project's codebase.
 
 %sClassify the following question into EXACTLY one of these categories:
 
-CASUAL     - greetings, general chat, praise, thanks, non-technical questions not about the codebase
-ARCHITECTURE - asking about tech stack, frameworks, dependencies, project structure, what the project does, how it works overall, why it was built
-FILE       - asking about a specific file by name (e.g. "show me App.tsx", "what is in pom.xml")
-CLASS      - asking about a specific Java class or React component by its exact name (e.g. "how does SearchService work", "explain EmbeddingService")
-CODE       - asking about specific functionality, logic, data flow, or how something works inside the codebase
+CASUAL     - greetings, general chat, praise, thanks ("hi", "thanks", "good job")
+             ONLY classify as CASUAL if the question has absolutely nothing to do with code or the project
+ARCHITECTURE - asking about tech stack, frameworks, dependencies, project structure, what the project does,
+               how it works overall, why it was built, what files are in a folder/directory
+FILE       - asking about a specific file by name (e.g. "show me App.tsx", "what is in pom.xml", "show vite.config.ts")
+CLASS      - asking about a specific Java class or React component by its exact name ending in Service/Controller/Repository/Component/Entity/Config
+CODE       - asking about how something is implemented or works in THIS project, including:
+             * how a concept is used/implemented here ("how are embeddings generated", "how does RAG work here")
+             * how a feature works ("how is authentication handled", "how is the repo cloned")
+             * follow-up questions where previous question gives context ("how is it used in this project" after asking about pgvector = CODE about pgvector)
+             * any "how does X work" question where X is a technical concept
 
-Important rules:
-- "how is it used in this project" after a previous question about a concept = CODE
-- "what does this project do" or "tell me about this project" = ARCHITECTURE
-- "technologies used" or "what frameworks" = ARCHITECTURE
-- Generic questions with no code keywords = CASUAL
+CRITICAL RULES:
+- If previous question asked about a concept (pgvector, RAG, embeddings, etc.) and current question says "how is it used", "where is it used", "show me", "how does it work here" = CODE
+- "how are embeddings generated" = CODE (not a generic ML question — asking about THIS project)
+- "how does the RAG pipeline work" = CODE
+- "how is authentication handled" = CODE
+- "what files are in codegraph-frontend" = ARCHITECTURE
+- "list all files in the backend" = ARCHITECTURE
+- "what is inside the frontend folder" = ARCHITECTURE
+- "what does this project do" = ARCHITECTURE
+- "tell me about this project" = ARCHITECTURE
+- Generic definition questions with NO previous context ("what is machine learning") = CASUAL
+- Generic definition questions WITH follow-up about usage in project = CODE for the follow-up
 
 Current question: "%s"
 
@@ -74,7 +88,7 @@ Reply with ONLY the single category word. No explanation. No punctuation.
             case "ARCHITECTURE" -> handleArchitecture(projectId, question);
             case "FILE"         -> handleFile(projectId, question);
             case "CLASS"        -> handleClass(projectId, question);
-            default             -> handleCode(projectId, question);
+            default             -> handleCode(projectId, question, previousQuestion);
         };
     }
 
@@ -116,7 +130,7 @@ Message: %s
             chunks.addAll(repository.findByFileName(projectId, "Dockerfile"));
         }
 
-        if (chunks.isEmpty()) return handleCode(projectId, question);
+        if (chunks.isEmpty()) return handleCode(projectId, question, "");
 
         String context = chunks.stream()
                 .limit(6)
@@ -148,7 +162,6 @@ User Question:
 %s
 """.formatted(context, question);
 
-        // Architecture answers don't need snippets — the answer itself is the explanation
         return new AskResponse(chatService.generateAnswer(prompt), false);
     }
 
@@ -161,7 +174,7 @@ User Question:
                 ? List.of()
                 : repository.findByFileName(projectId, fileName);
 
-        if (chunks.isEmpty()) return handleCode(projectId, question);
+        if (chunks.isEmpty()) return handleCode(projectId, question, "");
 
         String context = chunks.stream()
                 .limit(5)
@@ -200,7 +213,7 @@ User Question:
                 ? List.of()
                 : repository.findByFileName(projectId, className);
 
-        if (chunks.isEmpty()) return handleCode(projectId, question);
+        if (chunks.isEmpty()) return handleCode(projectId, question, "");
 
         String context = chunks.stream()
                 .limit(5)
@@ -233,8 +246,13 @@ User Question:
 
     // ─── CODE ─────────────────────────────────────────────────────────────────────
 
-    private AskResponse handleCode(Long projectId, String question) {
-        String queryEmbedding = embeddingService.getEmbedding(question);
+    private AskResponse handleCode(Long projectId, String question, String previousQuestion) {
+        // Enrich query with previous question context for better vector search
+        String enrichedQuery = (previousQuestion != null && !previousQuestion.isBlank())
+                ? previousQuestion + " " + question
+                : question;
+
+        String queryEmbedding = embeddingService.getEmbedding(enrichedQuery);
         String q = question.toLowerCase();
 
         List<CodeChunkEntity> chunks;
@@ -249,8 +267,6 @@ User Question:
             chunks = repository.searchSimilarChunks(projectId, queryEmbedding, 5);
         }
 
-        // Filter: remove empty chunks and low-similarity results
-        // In pgvector, <-> is L2 distance — lower = more similar. Threshold 0.8 keeps only relevant ones.
         List<CodeChunkEntity> relevant = chunks.stream()
                 .filter(c -> c.getContent() != null && c.getContent().trim().length() > 100)
                 .filter(c -> c.getSimilarity() != null && c.getSimilarity() < 0.8)
@@ -258,7 +274,6 @@ User Question:
                 .collect(Collectors.toList());
 
         if (relevant.isEmpty()) {
-            // No relevant code found — answer directly without RAG
             String directPrompt = """
 You are CodeGraph AI — a helpful assistant for developers.
 Answer this question as best you can. If it requires specific code knowledge you don't have, say so honestly.
@@ -272,12 +287,16 @@ Question: %s
                 .map(c -> "FILE: " + c.getFilePath() + "\nCODE:\n" + c.getContent())
                 .collect(Collectors.joining("\n\n---\n\n"));
 
+        String questionContext = (previousQuestion != null && !previousQuestion.isBlank())
+                ? "Note: The user previously asked about \"" + previousQuestion + "\". Answer in that context.\n\n"
+                : "";
+
         String prompt = """
 You are CodeGraph AI — a senior software engineer helping a developer understand a codebase.
 
 You have been given code snippets retrieved from the project that are relevant to the question.
 
-IMPORTANT RULES:
+%sIMPORTANT RULES:
 - Answer using ONLY the code context provided below
 - If the answer is not present in the context, say "I couldn't find information about this in the indexed code"
 - Do NOT invent code, methods, or logic that is not in the context
@@ -293,7 +312,7 @@ Code Context:
 
 User Question:
 %s
-""".formatted(context, question);
+""".formatted(questionContext, context, question);
 
         return new AskResponse(chatService.generateAnswer(prompt), true);
     }
