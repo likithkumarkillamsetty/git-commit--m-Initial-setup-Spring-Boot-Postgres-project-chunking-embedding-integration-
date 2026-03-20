@@ -10,8 +10,8 @@ export const projectApi = {
   embed: (id: number): Promise<string> =>
     api.post(`/projects/${id}/embed`).then(r => r.data),
 
-    ask: (projectId: number, question: string): Promise<AskResponse> =>
-    axios.post(`/api/projects/${projectId}/ask`, { question }).then(r => r.data),
+  ask: (projectId: number, question: string, previousQuestion: string = ''): Promise<AskResponse> =>
+    axios.post(`/api/projects/${projectId}/ask`, { question, previousQuestion }).then(r => r.data),
 
   search: (id: number, query: string): Promise<SearchResult[]> =>
     api.post(`/projects/${id}/search`, query, {
