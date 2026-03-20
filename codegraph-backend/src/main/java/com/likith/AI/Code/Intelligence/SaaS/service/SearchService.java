@@ -94,14 +94,14 @@ Message: %s
             chunks.addAll(repository.findByFileName(projectId, "vite.config"));
             chunks.addAll(repository.findByFileName(projectId, "tailwind"));
             chunks.addAll(repository.findByFileName(projectId, "tsconfig"));
-            chunks.addAll(repository.findByFilePathContaining(projectId, "codegraph-frontend", 5));
+            chunks.addAll(repository.findByFileName(projectId, "codegraph-frontend"));
         }
         // If specifically about backend
         else if (q.contains("backend") || q.contains("java") || q.contains("spring") || q.contains("server")) {
             chunks.addAll(repository.findByFileName(projectId, "pom.xml"));
             chunks.addAll(repository.findByFileName(projectId, "application.properties"));
             chunks.addAll(repository.findByFileName(projectId, "Dockerfile"));
-            chunks.addAll(repository.findByFilePathContaining(projectId, "codegraph-backend", 5));
+            chunks.addAll(repository.findByFileName(projectId, "codegraph-backend"));
         }
         // General architecture question — fetch both sides
         else {
